@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using SAG.Common;
+using SAG.CodeAnalyst.Services;
 
 namespace SAG.CodeAnalyst
 {
@@ -23,7 +24,7 @@ namespace SAG.CodeAnalyst
 
             if (args.Count() == 0)
             {
-                Console.WriteLine("Please input parameters and press enter to continue...");
+                /*
                 Console.WriteLine("/a: Active Archive Flag");
                 Console.WriteLine("/f: Check File structure");
                 Console.WriteLine("/d: Check Database objects");
@@ -34,27 +35,19 @@ namespace SAG.CodeAnalyst
                 Console.WriteLine("/c: Correct File name");
                 Console.WriteLine("/ts=[yyyyMMddhhmmss]: Manually TimeStamp setting for the prefix of the log files");
                 Console.WriteLine("ps: Multiple parameters are supported");
+                */
+                
+                Console.WriteLine("Please input parameters and press enter to continue...");
+                Console.WriteLine("/rt: Remove temp files");
+
                 userInput = Console.ReadLine();
             }
 
             try
             {
-                /*
-                 Checking steps:
-                 1) scan binfile folder
-                 2) scan data tables/fields in DB
-                 3) scan source codes, find if folder/db elements exists in the codes
-                 4) read all the log files after the scanning process, and sync files to cloud
-                 */
-                var isCheckFS = false; //Check file structure
-                var isCheckDB = false; //Check database objects
-                var isCheckSC = false; //Check source codes
-                var isSyncFile = false; //Sync File to Cloud
-                var isMapFile = false; //Map data with Cloud File 
                 var isTimeStamp = false; //Set manual timestamp
-                var isCovertFileID = false; //Convert the file objectid
-                var isCorrectName = false; //Correct file Name
-                var isArchive = false; //archive flag
+                var isRemoveTemp = false;
+
                 parameters = userInput.Split('/');
 
                 foreach (var parameter in parameters)
@@ -70,32 +63,8 @@ namespace SAG.CodeAnalyst
 
                     switch (parameterAlt)
                     {
-                        case "a":
-                            isArchive = true;
-                            break;
-                        case "f":
-                            isCheckFS = true;
-                            break;
-                        case "d":
-                            isCheckDB = true;
-                            break;
-                        case "s":
-                            isCheckSC = true;
-                            break;
-                        case "sync":
-                            isSyncFile = true;
-                            break;
-                        case "m":
-                            isMapFile = true;
-                            break;
-                        case "cfid":
-                            isCovertFileID = true;
-                            break;
-                        case "ts":
-                            isTimeStamp = true;
-                            break;
-                        case "c":
-                            isCorrectName = true;
+                        case "rt":
+                            isRemoveTemp = true;
                             break;
                     }
                 }
@@ -106,98 +75,18 @@ namespace SAG.CodeAnalyst
                     logger = new LogWriter("log", timeStamp);
                 }
 
-                if (isCheckDB)
+                if (isRemoveTemp)
                 {
-                    var dbService = new DBStructureService(logger);
-                    msg = "Start DBStructureService process.";
+                    var tempFileService = new TempFileService(logger, true);
+                    msg = "Start Remove temp files process.";
                     Console.WriteLine(msg);
                     if (isLog)
                     {
                         logger.LogWrite(msg, true);
                     }
 
-                    dbService.Process();
+                    tempFileService.Process();
                 }
-
-                if (isCheckFS)
-                {
-                    var fileService = new FileDirectoryService(logger, true, false, null, isArchive);
-                    msg = "Start FileDirectoryService process.";
-                    Console.WriteLine(msg);
-                    if (isLog)
-                    {
-                        logger.LogWrite(msg, true);
-                    }
-
-                    fileService.Process();
-                }
-
-                if (isCheckSC)
-                {
-                    var sourceCodeService = new SourceCodeService(logger);
-                    msg = "Start SourceCodeService process.";
-                    Console.WriteLine(msg);
-                    if (isLog)
-                    {
-                        logger.LogWrite(msg, true);
-                    }
-
-                    sourceCodeService.Process();
-                }
-
-                if (isSyncFile)
-                {
-                    //Call the SyncFileService here
-                    var syncFileService = new SyncFileService(logger, isArchive);
-                    msg = "Start SyncFileService process.";
-                    Console.WriteLine(msg);
-                    if (isLog)
-                    {
-                        logger.LogWrite(msg, true);
-                    }
-
-                    syncFileService.Process();
-                }
-
-                if (isCovertFileID)
-                {
-                    var fileIDConversionService = new FileIDConversionService(logger);
-                    msg = "Start File ID ConversionService process.";
-                    Console.WriteLine(msg);
-                    if (isLog)
-                    {
-                        logger.LogWrite(msg, true);
-                    }
-
-                    fileIDConversionService.Process();
-                }
-
-                if (isMapFile)
-                {
-                    var service = new KeyMappingService(logger);
-                    msg = "StartKeyMappingService process.";
-                    Console.WriteLine(msg);
-                    if (isLog)
-                    {
-                        logger.LogWrite(msg, true);
-                    }
-
-                    service.Process();
-                }
-
-                if (isCorrectName)
-                {
-                    var fileCorrectionServices = new FileCorrectionServices(logger);
-                    msg = "Start File Name Correction process.";
-                    Console.WriteLine(msg);
-                    if (isLog)
-                    {
-                        logger.LogWrite(msg, true);
-                    }
-
-                    fileCorrectionServices.Process();
-                }
-
             }
             catch (Exception ex)
             {
@@ -215,7 +104,7 @@ namespace SAG.CodeAnalyst
             string version = fvi.FileVersion;
 
             Console.WriteLine("*********************************************************");
-            Console.WriteLine(string.Format("****       SAG.FileCloud.Crawler (ver.{0})       ****", version));
+            Console.WriteLine(string.Format("****       SAG.CodeAnalyst (ver.{0})       ****", version));
             Console.WriteLine("*********************************************************");
         }
     }
