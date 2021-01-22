@@ -1,0 +1,11 @@
+.vs/
+/packages/*
+!/packages/SAG.ApplicationLock/
+!/packages/SAG.Authentication/
+!/packages/ServerStorage/
+!/packages/SAG.Common/
+!/packages/SAG.DataAccess/
+!/packages/SAG.EmailService/
+/SAG.Common/Properties/PublishProfiles/*
+obj/
+bin/
